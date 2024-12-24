@@ -9,6 +9,7 @@ import us.dingl.connorPlugin.Commands.GiveBow;
 import us.dingl.connorPlugin.Commands.GiveSword;
 import us.dingl.connorPlugin.Commands.ShootHitscanTest;
 import us.dingl.connorPlugin.Commands.ToggleDebugMode;
+import us.dingl.connorPlugin.Listeners.Murasama.LeftClickChargedListener;
 import us.dingl.connorPlugin.Listeners.SplinteredSoulbow.BowMeleeDamageListener;
 import us.dingl.connorPlugin.Listeners.SplinteredSoulbow.OffhandListener;
 import us.dingl.connorPlugin.Listeners.SplinteredSoulbow.RightClickListener;
@@ -107,6 +108,7 @@ public final class ConnorPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new OffhandListener(), this);
 
         getServer().getPluginManager().registerEvents(new HoldCrouchListener(this), this);
+        getServer().getPluginManager().registerEvents(new LeftClickChargedListener(this), this);
     }
 
     /**

@@ -5,10 +5,12 @@ import org.bukkit.Particle;
 import org.bukkit.entity.Damageable;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import us.dingl.connorPlugin.ConnorPlugin;
 
 import java.util.List;
+import java.util.Random;
 
 public class ShootCrossProjectile {
 
@@ -23,74 +25,116 @@ public class ShootCrossProjectile {
         Location eyeLocation = player.getEyeLocation();
         Vector direction = eyeLocation.getDirection();
 
+        // Define additional eye locations for vertical, horizontal, and diagonal ray traces
+        Location eyeLocation2 = eyeLocation.clone().add(0.45, 0, 0);
+        Location eyeLocation3 = eyeLocation.clone().add(-0.45, 0, 0);
+        Location eyeLocation4 = eyeLocation.clone().add(0, 0, 0.45);
+        Location eyeLocation5 = eyeLocation.clone().add(0, 0, -0.45);
+        Location eyeLocation6 = eyeLocation.clone().add(0, 0.45, 0);
+        Location eyeLocation7 = eyeLocation.clone().add(0, -0.45, 0);
+        Location eyeLocation8 = eyeLocation.clone().add(0.45, 0.45, 0);
+        Location eyeLocation9 = eyeLocation.clone().add(-0.45, -0.45, 0);
+        Location eyeLocation10 = eyeLocation.clone().add(0, 0.45, 0.45);
+        Location eyeLocation11 = eyeLocation.clone().add(0, -0.45, -0.45);
+
         // Check if the player has debug mode enabled
         boolean isDebugMode = plugin.debugMode.getOrDefault(player.getUniqueId(), false);
 
-        // Step through the ray in small increments
-        for (double i = 0; i < range; i += 0.25) { // Adjust step size for performance/accuracy
-            Location currentPoint = eyeLocation.clone().add(direction.clone().multiply(i));
-            currentPoint.getWorld().spawnParticle(Particle.TRIAL_SPAWNER_DETECTION_OMINOUS, currentPoint, 3, 0, 0, 0, 0);
+        // Perform the initial ray trace
+        performRayTrace(player, eyeLocation, direction, range + 1, isDebugMode);
 
-            // Check for nearby entities
-            List<Entity> nearbyEntities = player.getWorld().getNearbyEntities(currentPoint, 0.25, 0.25, 0.25).stream()
-                    .filter(entity -> entity != player) // Ignore the player
-                    .toList();
+        // Create a random integer to decide between vertical, horizontal, and diagonal ray traces
+        Random random = new Random();
+        int traceType = random.nextInt(3);
 
-            if (!nearbyEntities.isEmpty()) {
-                // Hit an entity
-                Entity hitEntity = nearbyEntities.getFirst();
-                Location hitLocation = hitEntity.getLocation();
-                Damageable target;
-                if (hitEntity instanceof Damageable) {
-                    target = (Damageable) hitEntity;
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (traceType == 0) {
+                    // Perform vertical ray traces
+                    performRayTrace(player, eyeLocation6, direction, range, isDebugMode);
+                    performRayTrace(player, eyeLocation7, direction, range, isDebugMode);
+                } else if (traceType == 1) {
+                    // Perform horizontal ray traces
+                    performRayTrace(player, eyeLocation2, direction, range, isDebugMode);
+                    performRayTrace(player, eyeLocation3, direction, range, isDebugMode);
+                    performRayTrace(player, eyeLocation4, direction, range, isDebugMode);
+                    performRayTrace(player, eyeLocation5, direction, range, isDebugMode);
                 } else {
+                    // Perform diagonal ray traces
+                    performRayTrace(player, eyeLocation8, direction, range, isDebugMode);
+                    performRayTrace(player, eyeLocation9, direction, range, isDebugMode);
+                    performRayTrace(player, eyeLocation10, direction, range, isDebugMode);
+                    performRayTrace(player, eyeLocation11, direction, range, isDebugMode);
+                }
+            }
+        }.runTaskLater(plugin, 3L);
+    }
+
+    private void performRayTrace(Player player, Location startLocation, Vector direction, double range, boolean isDebugMode) {
+        new BukkitRunnable() {
+            double i = 0;
+
+            @Override
+            public void run() {
+                if (i >= range) {
+                    cancel();
                     return;
                 }
 
-                // Get distance from player to hit location
-                double distance = player.getLocation().distance(hitLocation);
+                Location currentPoint = startLocation.clone().add(direction.clone().multiply(i));
+                Particle.DustOptions dustOptions = new Particle.DustOptions(org.bukkit.Color.RED, 0.5f);
+                currentPoint.getWorld().spawnParticle(Particle.DUST, currentPoint, 1, 0, 0, 0, 1000, dustOptions);
 
-                // Determine damage based on distance
-                double damage = 0;
-                if (distance <= 15) {
-                    damage = 6.0;
-                } else if (distance <= 30) {
-                    damage = 3.0;
-                } else if (distance <= 80) {
-                    damage = 1.0;
+                List<Entity> nearbyEntities = player.getWorld().getNearbyEntities(currentPoint, 0.25, 0.25, 0.25).stream()
+                        .filter(entity -> entity != player)
+                        .toList();
+
+                if (!nearbyEntities.isEmpty()) {
+                    Entity hitEntity = nearbyEntities.getFirst();
+                    Location hitLocation = hitEntity.getLocation();
+                    Damageable target;
+                    if (hitEntity instanceof Damageable) {
+                        target = (Damageable) hitEntity;
+                    } else {
+                        cancel();
+                        return;
+                    }
+
+                    double distance = player.getLocation().distance(hitLocation);
+                    double damage = 1;
+
+                    target.damage(0);
+                    double newHealth = target.getHealth() - damage;
+                    if (newHealth <= 0) {
+                        target.setHealth(0);
+                    } else {
+                        target.setHealth(newHealth);
+                    }
+
+                    if (isDebugMode) {
+                        player.sendMessage("Hit entity: " + hitEntity.getName() + " with damage: " + damage);
+                        player.sendMessage("Entity health: " + target.getHealth());
+                        player.sendMessage("Distance: " + distance);
+                    }
+
+                    player.getWorld().spawnParticle(Particle.HEART, hitLocation, 5);
+                    cancel();
+                    return;
                 }
 
-                target.damage(0);
-                double newHealth = target.getHealth() - damage;
-                if (newHealth <= 0) {
-                    target.setHealth(0);
-                } else {
-                    target.setHealth(newHealth);
+                if (currentPoint.getBlock().getType().isSolid()) {
+                    if (isDebugMode) {
+                        player.sendMessage("Hit block at: " + currentPoint.getBlockX() + ", " + currentPoint.getBlockY() + ", " + currentPoint.getBlockZ());
+                        player.sendMessage("Block type: " + currentPoint.getBlock().getType());
+                        player.sendMessage("Distance: " + i);
+                    }
+                    cancel();
+                    return;
                 }
 
-                // Debug mode: show hit entity and damage
-                if (isDebugMode) {
-                    player.sendMessage("Hit entity: " + hitEntity.getName() + " with damage: " + damage);
-                    player.sendMessage("Entity health: " + target.getHealth());
-                    player.sendMessage("Distance: " + distance);
-                }
-
-                // Spawn particle effect at the hit location
-                player.getWorld().spawnParticle(Particle.HEART, hitLocation, 5);
-
-                return; // Stop further ray tracing
+                i += 0.5;
             }
-
-            // Check if we hit a block
-            if (currentPoint.getBlock().getType().isSolid()) {
-                // Debug mode: show hit block
-                if (isDebugMode) {
-                    player.sendMessage("Hit block at: " + currentPoint.getBlockX() + ", " + currentPoint.getBlockY() + ", " + currentPoint.getBlockZ());
-                    player.sendMessage("Block type: " + currentPoint.getBlock().getType());
-                    player.sendMessage("Distance: " + i);
-                }
-                return; // Stop further ray tracing
-            }
-        }
+        }.runTaskTimer(plugin, 0L, 1L); // Adjust the delay (2L) as needed
     }
 }

@@ -1,15 +1,15 @@
-C:\Users\Noah Harper\Desktop\Minecraft Stuff\Plugins\ConnorPlugin\src\main\java\us\dingl\connorPlugin\Commands\GiveBow.java
-C:\Users\Noah Harper\Desktop\Minecraft Stuff\Plugins\ConnorPlugin\src\main\java\us\dingl\connorPlugin\Commands\GiveSword.java
-C:\Users\Noah Harper\Desktop\Minecraft Stuff\Plugins\ConnorPlugin\src\main\java\us\dingl\connorPlugin\Commands\ShootCrossProjectileTest.java
-C:\Users\Noah Harper\Desktop\Minecraft Stuff\Plugins\ConnorPlugin\src\main\java\us\dingl\connorPlugin\Commands\ShootHitscanTest.java
-C:\Users\Noah Harper\Desktop\Minecraft Stuff\Plugins\ConnorPlugin\src\main\java\us\dingl\connorPlugin\Commands\ToggleDebugMode.java
-C:\Users\Noah Harper\Desktop\Minecraft Stuff\Plugins\ConnorPlugin\src\main\java\us\dingl\connorPlugin\ConnorPlugin.java
-C:\Users\Noah Harper\Desktop\Minecraft Stuff\Plugins\ConnorPlugin\src\main\java\us\dingl\connorPlugin\CrossProjectile\ShootCrossProjectile.java
-C:\Users\Noah Harper\Desktop\Minecraft Stuff\Plugins\ConnorPlugin\src\main\java\us\dingl\connorPlugin\Hitscan\ShootHitscan.java
-C:\Users\Noah Harper\Desktop\Minecraft Stuff\Plugins\ConnorPlugin\src\main\java\us\dingl\connorPlugin\Listeners\Murasama\HoldCrouchListener.java
-C:\Users\Noah Harper\Desktop\Minecraft Stuff\Plugins\ConnorPlugin\src\main\java\us\dingl\connorPlugin\Listeners\Murasama\RightClickChargedListener.java
-C:\Users\Noah Harper\Desktop\Minecraft Stuff\Plugins\ConnorPlugin\src\main\java\us\dingl\connorPlugin\Listeners\SplinteredSoulbow\BowMeleeDamageListener.java
-C:\Users\Noah Harper\Desktop\Minecraft Stuff\Plugins\ConnorPlugin\src\main\java\us\dingl\connorPlugin\Listeners\SplinteredSoulbow\OffhandListener.java
-C:\Users\Noah Harper\Desktop\Minecraft Stuff\Plugins\ConnorPlugin\src\main\java\us\dingl\connorPlugin\Listeners\SplinteredSoulbow\RightClickListener.java
-C:\Users\Noah Harper\Desktop\Minecraft Stuff\Plugins\ConnorPlugin\src\main\java\us\dingl\connorPlugin\Utils\ItemUtil.java
-C:\Users\Noah Harper\Desktop\Minecraft Stuff\Plugins\ConnorPlugin\src\main\java\us\dingl\connorPlugin\Utils\PlayerUtils.java
+C:\Users\Noah Harper\Desktop\ConnorPlugin\src\main\java\us\dingl\connorPlugin\Commands\GiveBow.java
+C:\Users\Noah Harper\Desktop\ConnorPlugin\src\main\java\us\dingl\connorPlugin\Commands\GiveSword.java
+C:\Users\Noah Harper\Desktop\ConnorPlugin\src\main\java\us\dingl\connorPlugin\Commands\ShootCrossProjectileTest.java
+C:\Users\Noah Harper\Desktop\ConnorPlugin\src\main\java\us\dingl\connorPlugin\Commands\ShootHitscanTest.java
+C:\Users\Noah Harper\Desktop\ConnorPlugin\src\main\java\us\dingl\connorPlugin\Commands\ToggleDebugMode.java
+C:\Users\Noah Harper\Desktop\ConnorPlugin\src\main\java\us\dingl\connorPlugin\ConnorPlugin.java
+C:\Users\Noah Harper\Desktop\ConnorPlugin\src\main\java\us\dingl\connorPlugin\CrossProjectile\ShootCrossProjectile.java
+C:\Users\Noah Harper\Desktop\ConnorPlugin\src\main\java\us\dingl\connorPlugin\Hitscan\ShootHitscan.java
+C:\Users\Noah Harper\Desktop\ConnorPlugin\src\main\java\us\dingl\connorPlugin\Listeners\Murasama\HoldCrouchListener.java
+C:\Users\Noah Harper\Desktop\ConnorPlugin\src\main\java\us\dingl\connorPlugin\Listeners\Murasama\LeftClickChargedListener.java
+C:\Users\Noah Harper\Desktop\ConnorPlugin\src\main\java\us\dingl\connorPlugin\Listeners\SplinteredSoulbow\BowMeleeDamageListener.java
+C:\Users\Noah Harper\Desktop\ConnorPlugin\src\main\java\us\dingl\connorPlugin\Listeners\SplinteredSoulbow\OffhandListener.java
+C:\Users\Noah Harper\Desktop\ConnorPlugin\src\main\java\us\dingl\connorPlugin\Listeners\SplinteredSoulbow\RightClickListener.java
+C:\Users\Noah Harper\Desktop\ConnorPlugin\src\main\java\us\dingl\connorPlugin\Utils\ItemUtil.java
+C:\Users\Noah Harper\Desktop\ConnorPlugin\src\main\java\us\dingl\connorPlugin\Utils\PlayerUtils.java
