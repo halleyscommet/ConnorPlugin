@@ -1,0 +1,31 @@
+name: ConnorPlugin
+version: '1.0'
+main: us.dingl.connorPlugin.ConnorPlugin
+api-version: '1.21'
+authors: [ halleyscommet ]
+description: Secwet :3
+website: dingl.us
+
+commands:
+  givebow:
+    description: Gives a bow
+  givesword:
+    description: Gives a sword
+  shoothitscantest:
+    description: Shoots a hitscan (test)
+    usage: /shoothitscantest <length>
+    permission: connorplugin.shoothitscantest
+  shootcrossprojectiletest:
+    description: Shoots a cross projectile (test)
+    usage: /shootcrossprojectiletest <length>
+    permission: connorplugin.shoothitscantest
+  toggledm:
+    description: Toggles debug mode
+    usage: /toggledm
+    permission: connorplugin.op
+
+permissions:
+  connorplugin.shoothitscantest:
+    default: op
+  connorplugin.op:
+    default: op
