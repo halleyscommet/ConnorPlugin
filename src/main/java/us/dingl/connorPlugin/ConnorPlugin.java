@@ -38,10 +38,10 @@ public final class ConnorPlugin extends JavaPlugin {
     public final Set<UUID> sneakingPlayers = new HashSet<>();
 
     /**
-     * A set to track players who are currently charged.
-     * The set contains the UUIDs of charged players.
+     * A map to track players who are currently charged.
+     * The key is the player's UUID and the value is a set of integers.
      */
-    public final Set<UUID> chargedPlayers = new HashSet<>();
+    public final HashMap<UUID, Integer> chargedPlayers = new HashMap<>();
 
     /**
      * The cooldown period in ticks (1 second).
@@ -121,8 +121,14 @@ public final class ConnorPlugin extends JavaPlugin {
 
             @Override
             public void run() {
-                for (UUID uuid : chargedPlayers) {
-                    Player player = PlayerUtils.getPlayerByUUID(uuid);
+                int charge = chargedPlayers.keySet().stream()
+                        .findFirst()
+                        .map(PlayerUtils::getPlayerByUUID)
+                        .map(player -> chargedPlayers.getOrDefault(player.getUniqueId(), 0))
+                        .orElse(0);
+
+                if (charge > 0) {
+                    Player player = PlayerUtils.getPlayerByUUID(chargedPlayers.keySet().stream().findFirst().orElse(null));
                     Particle.DustOptions dust = new Particle.DustOptions(Color.ORANGE, 2);
 
                     player.getWorld().spawnParticle(Particle.DUST, player.getLocation().add(0, 2.5, 0), 0, dust);
@@ -130,12 +136,12 @@ public final class ConnorPlugin extends JavaPlugin {
             }
         }.runTaskTimer(this, 0L, 1L);
 
-        // Remove player from chargedPlayers set if they don't have the sword
+        // Remove player from chargedPlayers map if they don't have the sword
         new BukkitRunnable() {
 
             @Override
             public void run() {
-                for (UUID uuid : chargedPlayers) {
+                for (UUID uuid : chargedPlayers.keySet()) {
                     Player player = PlayerUtils.getPlayerByUUID(uuid);
                     if (!player.getInventory().getItemInMainHand().isSimilar(new ItemUtil().giveSword())) {
                         chargedPlayers.remove(uuid);
@@ -144,12 +150,12 @@ public final class ConnorPlugin extends JavaPlugin {
             }
         }.runTaskTimer(this, 0L, 20L);
 
-        // Remove player from chargedPlayers set if they are no longer online
+        // Remove player from chargedPlayers map if they are no longer online
         new BukkitRunnable() {
 
             @Override
             public void run() {
-                chargedPlayers.removeIf(uuid -> PlayerUtils.getPlayerByUUID(uuid) == null);
+                chargedPlayers.keySet().removeIf(uuid -> PlayerUtils.getPlayerByUUID(uuid) == null);
             }
         }.runTaskTimer(this, 0L, 200L);
 

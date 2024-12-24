@@ -133,8 +133,8 @@ public class ShootCrossProjectile {
                     return;
                 }
 
-                i += 0.5;
+                i += 1;
             }
-        }.runTaskTimer(plugin, 0L, 1L); // Adjust the delay (2L) as needed
+        }.runTaskTimer(plugin, 0L, 1L); // Adjust the delay (1L) as needed
     }
 }

@@ -27,12 +27,17 @@ public class LeftClickChargedListener implements Listener {
                 return;
             }
 
-            if (!plugin.chargedPlayers.contains(event.getPlayer().getUniqueId())) {
+            if (!plugin.chargedPlayers.containsKey(event.getPlayer().getUniqueId())) {
+                return;
+            }
+
+            int charge = plugin.chargedPlayers.getOrDefault(event.getPlayer().getUniqueId(), 0);
+            if (charge <= 0) {
                 return;
             }
 
             shootCross.performShot(event.getPlayer(), 15);
-            plugin.chargedPlayers.remove(event.getPlayer().getUniqueId());
+            plugin.chargedPlayers.put(event.getPlayer().getUniqueId(), charge - 1);
         }
     }
 }

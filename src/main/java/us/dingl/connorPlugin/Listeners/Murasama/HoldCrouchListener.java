@@ -84,7 +84,7 @@ public class HoldCrouchListener implements Listener {
                         if (count >= 4) {
                             phi = phi + Math.PI / 16;
                             double radius = 1.6;
-                            plugin.chargedPlayers.add(playerUUID);
+                            plugin.chargedPlayers.put(playerUUID, 3);
 
                             for (int ring = 1; ring <= 3; ring++) {
                                 for (double t = 0; t < 2 * Math.PI; t += Math.PI / 16) {
