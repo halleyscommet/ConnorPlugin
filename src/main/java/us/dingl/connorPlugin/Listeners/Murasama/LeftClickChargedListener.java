@@ -36,7 +36,7 @@ public class LeftClickChargedListener implements Listener {
                 return;
             }
 
-            shootCross.performShot(event.getPlayer(), 15);
+            shootCross.performShot(event.getPlayer(), 20);
             plugin.chargedPlayers.put(event.getPlayer().getUniqueId(), charge - 1);
         }
     }

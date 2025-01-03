@@ -28,13 +28,13 @@ public class HoldCrouchListener implements Listener {
     private final ConnorPlugin plugin;
     private final PlayerUtils utils;
     private final ItemUtil itemUtil;
-    private final Map<UUID, Integer> playerCounts = new HashMap<>();
+    private static final Map<UUID, Integer> playerCounts = new HashMap<>();
 
     public HoldCrouchListener(ConnorPlugin plugin) {
         this.plugin = plugin;
         this.utils = new PlayerUtils();
         this.itemUtil = new ItemUtil();
-        Bukkit.getPluginManager().registerEvents(new ProjectileBounceListener(playerCounts), plugin);
+        Bukkit.getPluginManager().registerEvents(new ProjectileBounceListener(), plugin);
     }
 
     @EventHandler
@@ -59,8 +59,14 @@ public class HoldCrouchListener implements Listener {
                         }
 
                         playerCounts.put(playerUUID, count);
-                        player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, (1.0f + (0.5f * count)));
+                        if (count < 3) {
+                            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, (0.5f + (0.25f * count)));
+                        } else if (count == 3) {
+                            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 2.0f); // Higher pitch for the last note
+                        }
                         count++;
+
+                        playerCounts.put(playerUUID, count);
 
                         Location loc = player.getLocation();
                         loc.setY(loc.getY() + 1);
@@ -87,6 +93,8 @@ public class HoldCrouchListener implements Listener {
                             plugin.chargedPlayers.put(playerUUID, 3);
 
                             for (int ring = 1; ring <= 3; ring++) {
+                                player.getWorld().playSound(player.getLocation(), Sound.ENTITY_PLAYER_ATTACK_SWEEP, 1f, 1.2f); // Play sound for each ring
+
                                 for (double t = 0; t < 2 * Math.PI; t += Math.PI / 16) {
                                     double x = radius * Math.cos(t + phi);
                                     double z = radius * Math.sin(t + phi);
@@ -121,16 +129,11 @@ public class HoldCrouchListener implements Listener {
             }
         } else {
             plugin.sneakingPlayers.remove(playerUUID);
+            playerCounts.put(playerUUID, 0); // Reset the player count to 0 when they stop sneaking
         }
     }
 
-    public static class ProjectileBounceListener implements Listener {
-
-        private final Map<UUID, Integer> playerCounts;
-
-        public ProjectileBounceListener(Map<UUID, Integer> playerCounts) {
-            this.playerCounts = playerCounts;
-        }
+    public class ProjectileBounceListener implements Listener {
 
         @EventHandler
         public void onProjectileHit(ProjectileHitEvent event) {
@@ -142,9 +145,22 @@ public class HoldCrouchListener implements Listener {
                     event.setCancelled(true);
                     Projectile projectile = event.getEntity();
                     Vector velocity = projectile.getVelocity();
-                    Vector normal = projectile.getLocation().toVector().subtract(player.getLocation().toVector()).normalize();
-                    Vector reflected = velocity.subtract(normal.multiply(2 * velocity.dot(normal)));
+                    Vector reflected = velocity.multiply(-0.8);
                     projectile.setVelocity(reflected);
+
+                    player.getWorld().playSound(player.getLocation(), Sound.ENTITY_BLAZE_HURT, 1000f, 2f);
+
+                    // Create a particle trail for the deflected projectile
+                    new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            if (!projectile.isValid() || projectile.isOnGround()) {
+                                this.cancel();
+                                return;
+                            }
+                            projectile.getWorld().spawnParticle(Particle.CRIT, projectile.getLocation(), 5, 0.1, 0.1, 0.1, 0.01);
+                        }
+                    }.runTaskTimer(plugin, 0L, 1L); // Adjust the interval as needed
                 }
             }
         }

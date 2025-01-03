@@ -1,14 +1,21 @@
 package us.dingl.connorPlugin;
 
-import org.bukkit.Color;
+import org.bukkit.Location;
 import org.bukkit.Particle;
+import org.bukkit.World;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
-import us.dingl.connorPlugin.Commands.GiveBow;
-import us.dingl.connorPlugin.Commands.GiveSword;
-import us.dingl.connorPlugin.Commands.ShootHitscanTest;
-import us.dingl.connorPlugin.Commands.ToggleDebugMode;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
+import us.dingl.connorPlugin.Commands.*;
+import us.dingl.connorPlugin.Listeners.Boss.*;
+import us.dingl.connorPlugin.Listeners.CustomDeathMessageListener;
 import us.dingl.connorPlugin.Listeners.Murasama.LeftClickChargedListener;
 import us.dingl.connorPlugin.Listeners.SplinteredSoulbow.BowMeleeDamageListener;
 import us.dingl.connorPlugin.Listeners.SplinteredSoulbow.OffhandListener;
@@ -54,6 +61,10 @@ public final class ConnorPlugin extends JavaPlugin {
      */
     public final HashMap<UUID, Boolean> debugMode = new HashMap<>();
 
+    public final Location spawnLocation = new Location(null, 0, 0, 0);
+
+    private final Map<UUID, Integer> bossHealthSegments = new HashMap<>();
+
     /**
      * Called when the plugin is enabled.
      * This method contains the startup logic for the plugin.
@@ -92,9 +103,13 @@ public final class ConnorPlugin extends JavaPlugin {
         Objects.requireNonNull(getCommand("shoothitscantest")).setExecutor(new ShootHitscanTest(this));
         Objects.requireNonNull(getCommand("shootcrossprojectiletest")).setExecutor(new ShootHitscanTest(this));
         Objects.requireNonNull(getCommand("toggledm")).setExecutor(new ToggleDebugMode(this));
+        Objects.requireNonNull(getCommand("testrichtext")).setExecutor(new TestRichTextCommand());
+        Objects.requireNonNull(getCommand("setspawn")).setExecutor(new SetSpawnLocationCommand(this));
+        Objects.requireNonNull(getCommand("summonboss")).setExecutor(new SummonBossCommand(this));
 
         // Register tab completers here
         Objects.requireNonNull(getCommand("toggledm")).setTabCompleter(new ToggleDebugMode(this));
+        Objects.requireNonNull(getCommand("setspawn")).setTabCompleter(new SetSpawnLocationCommand(this));
     }
 
     /**
@@ -103,12 +118,22 @@ public final class ConnorPlugin extends JavaPlugin {
      */
     private void registerListeners() {
         // Register listeners here
+        // bow
         getServer().getPluginManager().registerEvents(new BowMeleeDamageListener(this), this);
         getServer().getPluginManager().registerEvents(new RightClickListener(this), this);
         getServer().getPluginManager().registerEvents(new OffhandListener(), this);
 
+        // murasama
         getServer().getPluginManager().registerEvents(new HoldCrouchListener(this), this);
         getServer().getPluginManager().registerEvents(new LeftClickChargedListener(this), this);
+
+        // custom death message
+        getServer().getPluginManager().registerEvents(new CustomDeathMessageListener(), this);
+
+        // boss
+        getServer().getPluginManager().registerEvents(new BossDamageListener(), this);
+        getServer().getPluginManager().registerEvents(new EndermanBlockPlaceListener(this), this);
+        getServer().getPluginManager().registerEvents(new BossDeathListener(this), this);
     }
 
     /**
@@ -129,9 +154,8 @@ public final class ConnorPlugin extends JavaPlugin {
 
                 if (charge > 0) {
                     Player player = PlayerUtils.getPlayerByUUID(chargedPlayers.keySet().stream().findFirst().orElse(null));
-                    Particle.DustOptions dust = new Particle.DustOptions(Color.ORANGE, 2);
 
-                    player.getWorld().spawnParticle(Particle.DUST, player.getLocation().add(0, 2.5, 0), 0, dust);
+                    player.getWorld().spawnParticle(Particle.RAID_OMEN, player.getLocation().add(0, 2.5, 0), 0);
                 }
             }
         }.runTaskTimer(this, 0L, 1L);
@@ -207,5 +231,62 @@ public final class ConnorPlugin extends JavaPlugin {
                 }
             }
         }.runTaskTimer(this, 0L, 200L);
+
+        // Summon boss minions when at marker
+        new BukkitRunnable() {
+
+            @Override
+            public void run() {
+                if (new BossUtils().doesBossExist()) {
+                    BossUtils bossUtils = new BossUtils();
+                    LivingEntity boss = bossUtils.getBoss();
+                    double health = boss.getHealth();
+                    double maxHealth = Objects.requireNonNull(boss.getAttribute(Attribute.GENERIC_MAX_HEALTH)).getValue();
+                    double healthPerSegment = maxHealth / 10.0;
+                    int currentSegment = (int) Math.ceil(health / healthPerSegment);
+
+                    World bossWorld = boss.getWorld();
+                    Location bossLocation = boss.getLocation();
+                    UUID bossUUID = boss.getUniqueId();
+
+                    if (!bossHealthSegments.containsKey(bossUUID) || bossHealthSegments.get(bossUUID) != currentSegment) {
+                        bossHealthSegments.put(bossUUID, currentSegment);
+                        List<Minion> entities = new ArrayList<>();
+                        Scoreboard scoreboard = getServer().getScoreboardManager().getMainScoreboard();
+                        Team team = Optional.ofNullable(scoreboard.getTeam("RC9")).orElseGet(() -> scoreboard.registerNewTeam("RC9"));
+
+                        if (currentSegment == 9) {
+                            EntityType entityType = EntityType.ENDERMITE;
+                            Integer amount = 5;
+                            List<PotionEffectType> effects = Collections.singletonList(PotionEffectType.SPEED);
+                            List<Integer> durations = Collections.singletonList(PotionEffect.INFINITE_DURATION);
+                            List<Integer> amplifiers = Collections.singletonList(2);
+                            Minion minion = new Minion(entityType, amount, effects, durations, amplifiers);
+
+                            entities.add(minion);
+                        } else if (currentSegment == 8) {
+                            EntityType entityType1 = EntityType.ENDERMITE;
+                            Integer amount1 = 5;
+                            List<PotionEffectType> effects1 = Collections.singletonList(PotionEffectType.SPEED);
+                            List<Integer> durations1 = Collections.singletonList(PotionEffect.INFINITE_DURATION);
+                            List<Integer> amplifiers1 = Collections.singletonList(2);
+                            Minion minion1 = new Minion(entityType1, amount1, effects1, durations1, amplifiers1);
+
+                            EntityType entityType2 = EntityType.BLAZE;
+                            Integer amount2 = 1;
+                            List<PotionEffectType> effects2 = Collections.singletonList(PotionEffectType.HEALTH_BOOST);
+                            List<Integer> durations2 = Collections.singletonList(PotionEffect.INFINITE_DURATION);
+                            List<Integer> amplifiers2 = Collections.singletonList(1);
+                            Minion minion2 = new Minion(entityType2, amount2, effects2, durations2, amplifiers2);
+
+                            entities.add(minion1);
+                            entities.add(minion2);
+                        }
+
+                        MinionSummoningHandler.summonMinions(entities, bossWorld, bossLocation, team);
+                    }
+                }
+            }
+        }.runTaskTimer(this, 0L, 10L);
     }
 }

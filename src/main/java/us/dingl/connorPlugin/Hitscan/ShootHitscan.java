@@ -1,12 +1,17 @@
 package us.dingl.connorPlugin.Hitscan;
 
+import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.entity.Damageable;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 import us.dingl.connorPlugin.ConnorPlugin;
+import us.dingl.connorPlugin.Utils.ItemUtil;
 
 import java.util.List;
 
@@ -16,6 +21,7 @@ import java.util.List;
 public class ShootHitscan {
 
     private final ConnorPlugin plugin;
+    private final ItemUtil itemUtil;
 
     /**
      * Constructor for ShootHitscan.
@@ -24,6 +30,7 @@ public class ShootHitscan {
      */
     public ShootHitscan(ConnorPlugin plugin) {
         this.plugin = plugin;
+        this.itemUtil = new ItemUtil();
     }
 
     /**
@@ -37,6 +44,8 @@ public class ShootHitscan {
         // Get the player's eye location and direction
         Location eyeLocation = player.getEyeLocation();
         Vector direction = eyeLocation.getDirection();
+
+        eyeLocation.getWorld().playSound(eyeLocation, Sound.ENTITY_BREEZE_DEATH, 1, 2);
 
         // Check if the player has debug mode enabled
         boolean isDebugMode = plugin.debugMode.getOrDefault(player.getUniqueId(), false);
@@ -77,8 +86,25 @@ public class ShootHitscan {
 
                 target.damage(0);
                 double newHealth = target.getHealth() - damage;
+                hitEntity.getWorld().playSound(hitEntity.getLocation(), Sound.ITEM_CHORUS_FRUIT_TELEPORT, 2, 1.7f);
                 if (newHealth <= 0) {
                     target.setHealth(0);
+                    if (!(target instanceof Player)) {
+                        return;
+                    }
+
+                    ItemStack bow = itemUtil.giveBow();
+                    Component itemDetails = itemUtil.getItemDetails(bow);
+                    Bukkit.broadcast(
+                            Component.text(
+                                    target.getName() + " was pierced by a barrage of energy from The "
+                            ).append(
+                                    Component.text("§b[§e§kXIX§r §6Splintered Soulbow §e§kXIX§b]§r ")
+                                            .hoverEvent(itemDetails)
+                            ).append(
+                                    Component.text("by " + player.getName() + "-02"
+                                    )
+                            ));
                 } else {
                     target.setHealth(newHealth);
                 }

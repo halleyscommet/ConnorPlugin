@@ -1,23 +1,30 @@
 package us.dingl.connorPlugin.CrossProjectile;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.entity.Damageable;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import us.dingl.connorPlugin.ConnorPlugin;
+import net.kyori.adventure.text.Component;
+import us.dingl.connorPlugin.Utils.ItemUtil;
 
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class ShootCrossProjectile {
 
     private final ConnorPlugin plugin;
+    private final ItemUtil itemUtil;
+    private final Set<UUID> processedEntities = new HashSet<>();
 
     public ShootCrossProjectile(ConnorPlugin plugin) {
         this.plugin = plugin;
+        this.itemUtil = new ItemUtil();
     }
 
     public void performShot(Player player, double range) {
@@ -26,16 +33,16 @@ public class ShootCrossProjectile {
         Vector direction = eyeLocation.getDirection();
 
         // Define additional eye locations for vertical, horizontal, and diagonal ray traces
-        Location eyeLocation2 = eyeLocation.clone().add(0.45, 0, 0);
-        Location eyeLocation3 = eyeLocation.clone().add(-0.45, 0, 0);
-        Location eyeLocation4 = eyeLocation.clone().add(0, 0, 0.45);
-        Location eyeLocation5 = eyeLocation.clone().add(0, 0, -0.45);
-        Location eyeLocation6 = eyeLocation.clone().add(0, 0.45, 0);
-        Location eyeLocation7 = eyeLocation.clone().add(0, -0.45, 0);
-        Location eyeLocation8 = eyeLocation.clone().add(0.45, 0.45, 0);
-        Location eyeLocation9 = eyeLocation.clone().add(-0.45, -0.45, 0);
-        Location eyeLocation10 = eyeLocation.clone().add(0, 0.45, 0.45);
-        Location eyeLocation11 = eyeLocation.clone().add(0, -0.45, -0.45);
+        Location eyeLocation2 = eyeLocation.clone().add(0.65, 0, 0);
+        Location eyeLocation3 = eyeLocation.clone().add(-0.65, 0, 0);
+        Location eyeLocation4 = eyeLocation.clone().add(0, 0, 0.65);
+        Location eyeLocation5 = eyeLocation.clone().add(0, 0, -0.65);
+        Location eyeLocation6 = eyeLocation.clone().add(0, 0.65, 0);
+        Location eyeLocation7 = eyeLocation.clone().add(0, -0.65, 0);
+        Location eyeLocation8 = eyeLocation.clone().add(0.65, 0.65, 0);
+        Location eyeLocation9 = eyeLocation.clone().add(-0.65, -0.65, 0);
+        Location eyeLocation10 = eyeLocation.clone().add(0, 0.65, 0.65);
+        Location eyeLocation11 = eyeLocation.clone().add(0, -0.65, -0.65);
 
         // Check if the player has debug mode enabled
         boolean isDebugMode = plugin.debugMode.getOrDefault(player.getUniqueId(), false);
@@ -83,15 +90,21 @@ public class ShootCrossProjectile {
                 }
 
                 Location currentPoint = startLocation.clone().add(direction.clone().multiply(i));
-                Particle.DustOptions dustOptions = new Particle.DustOptions(org.bukkit.Color.RED, 0.5f);
+                Particle.DustOptions dustOptions = new Particle.DustOptions(org.bukkit.Color.RED, 1.5f);
                 currentPoint.getWorld().spawnParticle(Particle.DUST, currentPoint, 1, 0, 0, 0, 1000, dustOptions);
 
-                List<Entity> nearbyEntities = player.getWorld().getNearbyEntities(currentPoint, 0.25, 0.25, 0.25).stream()
+                List<Entity> nearbyEntities = player.getWorld().getNearbyEntities(currentPoint, 0.65, 0.65, 0.65).stream()
                         .filter(entity -> entity != player)
                         .toList();
 
                 if (!nearbyEntities.isEmpty()) {
                     Entity hitEntity = nearbyEntities.getFirst();
+                    if (processedEntities.contains(hitEntity.getUniqueId())) {
+                        cancel();
+                        return;
+                    }
+                    processedEntities.add(hitEntity.getUniqueId());
+
                     Location hitLocation = hitEntity.getLocation();
                     Damageable target;
                     if (hitEntity instanceof Damageable) {
@@ -102,12 +115,27 @@ public class ShootCrossProjectile {
                     }
 
                     double distance = player.getLocation().distance(hitLocation);
-                    double damage = 0.75;
+                    double damage = 4;
 
                     target.damage(0);
                     double newHealth = target.getHealth() - damage;
+                    target.getWorld().playSound(target.getLocation(), Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, 2, 2);
                     if (newHealth <= 0) {
                         target.setHealth(0);
+                        if (!(target instanceof Player)) {
+                            cancel();
+                            return;
+                        }
+
+                        ItemStack sword = itemUtil.giveSword();
+                        Component itemDetails = itemUtil.getItemDetails(sword);
+                        Bukkit.broadcast(
+                                Component.text(
+                                        target.getName() + " was split in two by " + player.getName() + "-01 using The "
+                                ).append(
+                                        Component.text("§b[§c§kXIX§r §4Murasama §c§kXIX§b]§r")
+                                                .hoverEvent(itemDetails)
+                                ));
                     } else {
                         target.setHealth(newHealth);
                     }
@@ -134,6 +162,6 @@ public class ShootCrossProjectile {
 
                 i += 1;
             }
-        }.runTaskTimer(plugin, 0L, 1L); // Adjust the delay (1L) as needed
+        }.runTaskTimer(plugin, 0L, 1L);
     }
 }

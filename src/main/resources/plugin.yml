@@ -23,9 +23,24 @@ commands:
     description: Toggles debug mode
     usage: /toggledm
     permission: connorplugin.op
+  testrichtext:
+    description: Tests rich text
+    usage: /testrichtext
+    permission: connorplugin.true
+    aliases: [ trt ]
+  setspawn:
+    description: Secwet :3
+    usage: /setspawn <x> <y> <z>
+    permission: connorplugin.true
+  summonboss:
+    description: Secwet :3
+    usage: /spawnboss
+    permission: connorplugin.true
 
 permissions:
   connorplugin.shoothitscantest:
     default: op
   connorplugin.op:
     default: op
+  connorplugin.true:
+    default: true
