@@ -1,6 +1,6 @@
 name: ConnorPlugin
 version: '1.0'
-main: us.dingl.connorPlugin.ConnorPlugin
+main: us.dingl.incursionImminent.IncursionImminent
 api-version: '1.21'
 authors: [ halleyscommet ]
 description: Secwet :3
